@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="resumeapp.client/resumeapp.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="ResumeApp.Server/ResumeApp.Server.csproj" />
+</Solution>

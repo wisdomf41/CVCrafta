@@ -1,0 +1,6 @@
+@ResumeApp.Server_HostAddress = http://localhost:5271
+
+GET {{ResumeApp.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
