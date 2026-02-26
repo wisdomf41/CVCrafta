@@ -1,7 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy ASP.Net Core app to Azure Web App - myresumefi
+name: Build and deploy .NET + React app to Azure Web App - myresumefi
 
 on:
   push:
@@ -13,22 +10,45 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
+      # Add Node.js setup for React
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      # Build React app
+      - name: Build React frontend
+        run: |
+          cd resumeapp.client
+          npm install
+          npm run build
+
+      # Copy React build to .NET wwwroot
+      - name: Copy React build to wwwroot
+        run: |
+          mkdir -p ResumeApp.Server/wwwroot
+          copy-item -Path resumeapp.client/dist/* -Destination ResumeApp.Server/wwwroot/ -Recurse -Force
+
+      # Setup .NET
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.x'
 
+      # Build .NET
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build ResumeApp.Server/ResumeApp.Server.csproj --configuration Release
 
+      # Publish .NET
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish ResumeApp.Server/ResumeApp.Server.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
+      # Upload artifact
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -39,8 +59,8 @@ jobs:
     runs-on: windows-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
@@ -56,10 +76,8 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_5BAE51C51D3545F8924003B7BF6B9549 }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'myresumefi'
           slot-name: 'Production'
           package: .
-          
