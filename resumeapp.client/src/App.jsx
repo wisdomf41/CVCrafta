@@ -67,6 +67,8 @@ function App() {
                         <li>Developed applications using .NET, C#, HTML, CSS, JavaScript, and jQuery.</li>
                         <li>Contributed to a healthcare system improving patient records management.</li>
                         <li>Successfully identified and fixed 20+ bugs in various applications.</li>
+                        {/* Test CI/CD - Update */}
+                        <li>CI/CD changing tracking</li>
                     </ul>
                 </div>
 
