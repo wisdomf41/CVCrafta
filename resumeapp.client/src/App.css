@@ -1,0 +1,183 @@
+* 
+{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body 
+{
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5;
+    line-height: 1.6;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.resume-container 
+{
+    max-width: 900px;
+    width: 100%;
+    background: white;
+    padding: 40px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+/* Center all text by default */
+.resume-container 
+{
+    text-align: center;
+}
+
+    /* But keep lists left-aligned for readability */
+    .resume-container ul {
+        text-align: left;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .resume-container .skills-list {
+        text-align: left;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+/* Headers */
+.header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #0078d4;
+}
+
+    .header h1 {
+        color: #0078d4;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+.contact {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    color: #666;
+}
+
+/* Section headers */
+.section h2 {
+    color: #0078d4;
+    font-size: 20px;
+    margin: 30px 0 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+}
+
+/* Job entries */
+.job-header {
+    margin-bottom: 5px;
+}
+    .job-header h3 {
+        font-size: 18px;
+        color: #333;
+        margin: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap
+        gap: 10px;
+    }
+
+
+
+.job {
+    margin-bottom: 30px;
+    text-align: left;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.date {
+    color: #666;
+    font-style: italic;
+    font-weight: bolder;
+    font-size: 14px;
+    white-space: nowrap; /* Prevents date from wrapping */
+}
+
+.company {
+    color: #0078d4;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+/*For Media screen*/
+@media (max-width: 600px){
+    .job-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+
+        .date {
+            white-space: normal: /* Allows wrapping on mobile */
+        }
+    }
+}
+
+/* Lists */
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+li {
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+    li::before {
+        content: "•";
+        color: #0078d4;
+        font-weight: bold;
+        position: absolute;
+        left: 5px;
+    }
+
+/* Skills */
+.skills-list {
+    text-align: left;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+    .skills-list p {
+        margin-bottom: 8px;
+    }
+
+/* Download button */
+.download-section {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #eee;
+}
+
+.download-btn {
+    display: inline-block;
+    background: #0078d4;
+    color: white;
+    padding: 12px 30px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+    .download-btn:hover {
+        background: #005a9e;
+    }
