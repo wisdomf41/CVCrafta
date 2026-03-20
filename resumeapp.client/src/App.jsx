@@ -20,10 +20,12 @@ function App() {
                 <h2>SUMMARY</h2>
                 <p>
                     <p>
-                        C#/.NET Developer with 1+ years of experience building full-stack applications
-                        using ASP.NET Core Web API and React. Skilled in REST APIs, SQL,
-                        and performance optimization, with a proven record of improving application efficiency,
-                        resolving bugs,open to continious leaning and growing and collaborating in agile development teams.
+                        .NET Developer with 3+ years of experience building full-stack applications using C#,
+                        ASP.NET Core Web API, and React. Skilled in developing RESTful APIs, SQL Server,
+                        and Entity Framework Core, with a focus on performance and scalability.
+                        Experienced in implementing CI/CD pipelines (GitHub Actions/Azure DevOps) to automate
+                        builds and deployments. Strong collaborator in Agile and remote teams, passionate about
+                        building efficient, maintainable systems.
                     </p>
                 </p>
             </section>
@@ -35,7 +37,7 @@ function App() {
                 <div className="job">
                     <div className="job-header">
                         <h3>
-                            Junior .NET Developer
+                            Full-Stack .NET Developer
                             <span className="date">2024 - 2026</span>
 
                         </h3>
@@ -43,12 +45,11 @@ function App() {
                     </div>
                     <p className="company">Metclan Technologies</p>
                     <ul>
-                        <li>Developed and maintained full-stack applications using <strong>ASP.NET Core Web API</strong> backend with <strong>React</strong> frontend.</li>
-                        <li>Built responsive user interfaces with <strong>React components, hooks, and state management</strong> for improved user experience.</li>
-                        <li>Integrated React frontend with .NET backend APIs, handling data flow and API calls efficiently.</li>
-                        <li>Implemented SQL queries in Entity Framework Core, increasing data retrieval speed by 25%.</li>
-                        <li>Collaborated with a team of 10+ developers to deliver robust software applications using <strong>Git</strong> for version control.</li>
-                        <li>Optimized code for various applications, leading to improvement in application performance.</li>
+                        <li>Developed 3+ full-stack applications using <strong>ASP.NET Core Web API</strong> and <strong>React</strong>.</li>
+                        <li>Built reusable React components, reducing development time by 30%.</li>
+                        <li>Integrated REST APIs and optimized queries with Entity Framework Core, improving performance by 25%.</li>
+                        <li>Implemented CI/CD pipelines (GitHub Actions/Azure DevOps) to automate build and deployment.</li>
+                        <li>Collaborated in an Agile team, using Git for version control..</li>
                     </ul>
                 </div>
 
@@ -65,10 +66,11 @@ function App() {
                     <p className="company">Loctech Training Institute</p>
                     <ul>
                         <li>Developed applications using .NET, C#, HTML, CSS, JavaScript, and jQuery.</li>
-                        <li>Contributed to a healthcare system improving patient records management.</li>
-                        <li>Successfully identified and fixed 20+ bugs in various applications.</li>
+                        <li>Contributed to the development of a healthcare management system, improving patient record handling and data accessibility.</li>
+                        <li>Diagnosed and resolved 20+ software bugs, enhancing system reliability and user satisfaction.</li>
+
                         {/* Test CI/CD - Update */}
-                        <li>CI/CD changing tracking</li>
+                        <li>Assisted in application testing, debugging, and deployment processes.</li>
                     </ul>
                 </div>
 
@@ -150,7 +152,7 @@ function App() {
 
             {/* Download PDF Button */}
             <div className="download-section">
-                <a href="/Future Ibeche_CV_.Net Dev_r.pdf" download className="download-btn">
+                <a href="/Future Ibeche_CV_.Net Dev.rc.pdf" download className="download-btn">
                     📥 Download PDF Resume
                 </a>
             </div>
