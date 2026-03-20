@@ -17,7 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-  
+      <ProjectReference Include="..\resumeapp.client\resumeapp.client.esproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference> 
   </ItemGroup>
 
 </Project>
