@@ -20,7 +20,7 @@ function App() {
                 <h2>SUMMARY</h2>
                 <p>
                     <p>
-                        .NET Developer with 3+ years of experience building full-stack applications using C#,
+                        Full-Stack .NET Developer with experience in building full-stack applications using C#,
                         ASP.NET Core Web API, and React. Skilled in developing RESTful APIs, SQL Server,
                         and Entity Framework Core, with a focus on performance and scalability.
                         Experienced in implementing CI/CD pipelines (GitHub Actions/Azure DevOps) to automate
