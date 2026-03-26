@@ -10,7 +10,7 @@ function App() {
                 <h1> React | SQL | ASP.NET Core | Rest API</h1>
                 <div className="contact">
                     <span>📧 wisdom41@gmail.com</span>
-                    <span>🔗 GitHub / LinkedIn (on request)</span>
+                    <span>🔗 GitHub / LinkedIn (@wisdomf41)</span>
                     <span>📍 Nigeria</span>
                 </div>
             </header>
