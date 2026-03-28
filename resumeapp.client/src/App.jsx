@@ -8,7 +8,7 @@ function App() {
 
     useEffect(() => { 
         // Fetch resume data from the backend API
-        fetch('https://myresumefi.azurewebsites.net/api/resume')
+        fetch("https://myresumefi.azurewebsites.net/api/resume")
             .then(response => response.json())
             .then(data => {
                 console.log(data);
