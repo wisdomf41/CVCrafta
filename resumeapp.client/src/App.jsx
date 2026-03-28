@@ -1,15 +1,33 @@
 ﻿import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 
 function App() {
+
+    const [resumeData, setResumeData] = useState(null);
+
+    useEffect(() => { 
+        // Fetch resume data from the backend API
+        fetch('https://myresumefi.azurewebsites.net/api/resume')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                setResume(data[0]); // Because the API returns an array, we take the first item
+
+            });
+    }, []);
+
+    if (!resume) return <p>Loading...</p>;
+
     return (
         <div className="resume-container">
             {/* Header Section */}
             <header className="header">
-                <h1> C# /.NET Developer </h1>
+                <h1> {resume.name} </h1>
+                <h1> {resume.title} </h1>
                 <h1> React | SQL | ASP.NET Core | Rest API</h1>
                 <div className="contact">
-                    <span>📧 wisdom41@gmail.com</span>
+                    <span>📧 {resume.email}</span>
                     <span>🔗 GitHub / LinkedIn (@wisdomf41)</span>
                     <span>📍 Nigeria</span>
                 </div>
