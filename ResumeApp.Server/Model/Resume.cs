@@ -6,5 +6,20 @@
         public string Name { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string? Email { get; set; }
+        public string Url { get; set; } = string.Empty;
+        public string Stack { get; set; } = string.Empty;
+        public string? Country { get; set; }
+        public string? Summary { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+
+        public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
+        public ICollection<Skill> Skills { get; set; } = new List<Skill>();
+        public ICollection<Project> Projects { get; set; } = new List<Project>();
+        public ICollection<Certification> Certifications { get; set; } = new List<Certification>();
+        public ICollection<Education> Educations { get; set; } = new List<Education>();
+        public ICollection<Interest> Interests { get; set; } = new List<Interest>();
+        public ICollection<Referee> Referees { get; set; } = new List<Referee>();
     }
 }

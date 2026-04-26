@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ResumeApp.Server.Data;
 
@@ -11,9 +12,11 @@ using ResumeApp.Server.Data;
 namespace ResumeApp.Server.Migrations
 {
     [DbContext(typeof(ResumeDbContext))]
-    partial class ResumeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260417135642_Seperated Controllers so each module has its own controller")]
+    partial class SeperatedControllerssoeachmodulehasitsowncontroller
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
