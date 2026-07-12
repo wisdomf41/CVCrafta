@@ -6,8 +6,13 @@ namespace ResumeApp.Server.Services.Interfaces
     {
         Task<IEnumerable<ResumeResponseDto>> GetAllAsync();
         Task<ResumeResponseDto?> GetByIdAsync(int id);
-        Task<ResumeResponseDto> CreateAsync(CreateResumeDto dto);
-        Task<bool> UpdateAsync(int id, UpdateResumeDto dto);
-        Task<bool> DeleteAsync(int id);
+
+        // Get only the resume that belongs to the logged-in user
+        Task<ResumeResponseDto> GetByUserIdAsync(string userId);
+
+        Task<ResumeResponseDto> CreateAsync(CreateResumeDto dto, string userId);
+
+        Task<bool> UpdateAsync(int id, UpdateResumeDto dto, string userId);
+        Task<bool> DeleteAsync(int id, string userId);
     }
 }

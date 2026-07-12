@@ -56,7 +56,28 @@ namespace ResumeApp.Server.Services.Implementations
                     .FirstOrDefaultAsync();
             }
 
-            public async Task<ResumeResponseDto> CreateAsync(CreateResumeDto dto)
+            public async Task<ResumeResponseDto?> GetByUserIdAsync(string userId)
+            {
+                return await _resDb.Resumes
+                    .Where(r => r.UserId == userId)
+                    .Select(r => new ResumeResponseDto
+                    {
+                        Id = r.Id,
+                        Name = r.Name,
+                        Title = r.Title,
+                        Email = r.Email,
+                        Url = r.Url,
+                        Stack = r.Stack,
+                        Country = r.Country,
+                        Summary = r.Summary,
+                        CreatedAt = r.CreatedAt,
+                        UpdatedAt = r.UpdatedAt
+                    })
+                    .FirstOrDefaultAsync();
+            }
+
+
+            public async Task<ResumeResponseDto> CreateAsync(CreateResumeDto dto, string userId)
             {
                 var resume = new Resume
                 {
@@ -66,6 +87,7 @@ namespace ResumeApp.Server.Services.Implementations
                     Url = dto.Url,
                     Stack = dto.Stack,
                     Country = dto.Country,
+                    UserId = userId,
                     Summary = dto.Summary,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -89,31 +111,32 @@ namespace ResumeApp.Server.Services.Implementations
                 };
             }
 
-            public async Task<bool> UpdateAsync(int id, UpdateResumeDto dto)
+        public async Task<bool> UpdateAsync(int id, UpdateResumeDto dto, string userId)
+        {
+            var existingResume = await _resDb.Resumes
+                .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
+
+            if (existingResume == null)
             {
-                var existingResume = await _resDb.Resumes.FindAsync(id);
-
-                if (existingResume == null)
-                {
-                    return false;
-                }
-
-                existingResume.Name = dto.Name;
-                existingResume.Title = dto.Title;
-                existingResume.Email = dto.Email;
-                existingResume.Url = dto.Url;
-                existingResume.Stack = dto.Stack;
-                existingResume.Country = dto.Country;
-                existingResume.Summary = dto.Summary;
-                existingResume.UpdatedAt = DateTime.UtcNow;
-
-                await _resDb.SaveChangesAsync();
-                return true;
+                return false;
             }
 
-            public async Task<bool> DeleteAsync(int id)
+            existingResume.Name = dto.Name;
+            existingResume.Title = dto.Title;
+            existingResume.Email = dto.Email;
+            existingResume.Url = dto.Url;
+            existingResume.Stack = dto.Stack;
+            existingResume.Country = dto.Country;
+            existingResume.Summary = dto.Summary;
+            existingResume.UpdatedAt = DateTime.UtcNow;
+
+            await _resDb.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id, string userId)
             {
-                var resume = await _resDb.Resumes.FindAsync(id);
+            var resume = await _resDb.Resumes.FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId);
 
                 if (resume == null)
                 {

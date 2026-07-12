@@ -1,4 +1,7 @@
-﻿namespace ResumeApp.Server.Model
+﻿using Humanizer;
+using ResumeApp.Server.ApplicationUserModel;
+
+namespace ResumeApp.Server.Model
 {
     public class Resume
     {
@@ -13,6 +16,15 @@
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+
+        /*
+        UserId stores the logged-in user’s ID
+        User is the navigation property back to the owner
+
+        So one resume now belongs to one account.
+        */
+        public string? UserId { get; set; } 
+        public ApplicationUser? User { get; set; }
 
         public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
         public ICollection<Skill> Skills { get; set; } = new List<Skill>();

@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using ResumeApp.Server.ApplicationUserModel;
 using ResumeApp.Server.Model;
 
 namespace ResumeApp.Server.Data
 {
-    public class ResumeDbContext : DbContext
+    public class ResumeDbContext : IdentityDbContext<ApplicationUser>
     {
         public ResumeDbContext(DbContextOptions<ResumeDbContext> options) : base(options)
         {
@@ -21,6 +23,12 @@ namespace ResumeApp.Server.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Resume>()
+                .HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Resume>()
                 .HasMany(r => r.Experiences)
