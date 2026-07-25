@@ -8,3 +8,9 @@ obj/
 .env.local
 # Visual Studio upgrade reports
 UpgradeLog*.htm
+
+# Root Node dependencies
+node_modules/
+
+# Local NuGet packages
+packages/
