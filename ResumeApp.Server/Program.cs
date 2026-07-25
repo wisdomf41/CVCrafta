@@ -35,6 +35,20 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ResumeDbContext>()
     .AddDefaultTokenProviders();
 
+//JWT Configuration Varables
+var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? throw new InvalidOperationException(
+        "JWT signing key is missing. Configure Jwt:Key using User Secrets or environment variables.");
+
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException(
+        "JWT issuer is missing. Configure Jwt:Issuer.");
+
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException(
+        "JWT audience is missing. Configure Jwt:Audience.");
+
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -48,9 +62,9 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey (Encoding.UTF8.GetBytes(jwtKey))
     };
 });
 
@@ -72,6 +86,35 @@ builder.Services.AddScoped<IRefereeService, RefereeService>();
 // Add services to the Db.
 builder.Services.AddDbContext<ResumeDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//Redis configuration for distributed caching.
+//This allows the application to store and retrieve data from a Redis cache,
+//which can improve performance and scalability, especially in distributed environments..
+
+// Get the Redis connection string from configuration.
+// In Docker Compose this comes from:
+// Redis__ConnectionString=redis:6379
+var redisConnectionString = builder.Configuration["Redis:ConnectionString"];
+
+if (!string.IsNullOrWhiteSpace(redisConnectionString))
+{
+    // Use Redis as the distributed cache when Redis is configured.
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+
+        // Prefix our Redis keys so they are clearly owned by ResumeApp.
+        options.InstanceName = "ResumeApp:";
+    });
+}
+else
+{
+    // When running without Docker/Redis,
+    // use an in-memory cache so the application can still start normally.
+    builder.Services.AddDistributedMemoryCache();
+}
+
+
 
 //Swagger connection/documentation/Authentication configuration
 builder.Services.AddEndpointsApiExplorer();
@@ -102,6 +145,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 var app = builder.Build();
+
+
+//Apply migrations automatically if the configuration setting is enabled.
+//This is useful for development and testing environments, but in production,
+//you might want to handle migrations manually to avoid unexpected changes to the database schema.
+
+if (builder.Configuration.GetValue<bool>("Database:ApplyMigrations"))
+{
+    using var scope = app.Services.CreateScope();
+
+    var dbContext =
+        scope.ServiceProvider.GetRequiredService<ResumeDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+}
 
 
 //app.UseDefaultFiles(); // Must be here for publishing

@@ -8,7 +8,8 @@ namespace ResumeApp.Server.Services.Interfaces
         Task<ResumeResponseDto?> GetByIdAsync(int id);
 
         // Get only the resume that belongs to the logged-in user
-        Task<ResumeResponseDto> GetByUserIdAsync(string userId);
+        // Returns null when the logged-in user has no resume yet.
+        Task<ResumeResponseDto?> GetByUserIdAsync(string userId);
 
         Task<ResumeResponseDto> CreateAsync(CreateResumeDto dto, string userId);
 

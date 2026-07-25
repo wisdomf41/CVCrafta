@@ -11,6 +11,6 @@
         public string Notes { get; set; } = string.Empty;  // For "Available on request" etc.
         public int DisplayOrder { get; set; }
         public int ResumeId { get; set; }
-        public Resume Resume { get; set; } = null;
+        public Resume Resume { get; set; } = null!;
     }
 }

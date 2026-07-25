@@ -10,6 +10,6 @@
         public string GithubUrl { get; set; } = string.Empty;   // Optional: link to source code
         public int DisplayOrder { get; set; }
         public int ResumeId { get; set; }  // Foreign key
-        public Resume Resume { get; set; } = null;
+        public Resume Resume { get; set; } = null!;
     }
 }

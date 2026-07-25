@@ -3,3 +3,8 @@ bin/
 obj/
 *.user
 *.suo
+# Local Docker secrets and FrontEnd Settings
+.env
+.env.local
+# Visual Studio upgrade reports
+UpgradeLog*.htm

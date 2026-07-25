@@ -12,6 +12,6 @@ namespace ResumeApp.Server.Model
         public int YearGraduated { get; set; }
         public int DisplayOrder { get; set; }
         public int ResumeId { get; set; }
-        public Resume Resume { get; set; } = null;
+        public Resume Resume { get; set; } = null!;
     }
 }

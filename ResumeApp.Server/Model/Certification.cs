@@ -9,6 +9,6 @@
         public string CredentialUrl { get; set; } = string.Empty;  // Optional: link to verify
         public int DisplayOrder { get; set; }
         public int ResumeId { get; set; }  // Foreign key
-        public Resume Resume { get; set; } = null;
+        public Resume Resume { get; set; } = null!;
     }
 }

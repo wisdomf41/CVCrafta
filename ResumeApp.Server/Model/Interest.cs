@@ -7,6 +7,6 @@
         public string Description { get; set; } = string.Empty;
         public int DisplayOrder { get; set; }
         public int ResumeId { get; set; }
-        public Resume Resume { get; set; } = null;
+        public Resume Resume { get; set; } = null!;
     }
 }

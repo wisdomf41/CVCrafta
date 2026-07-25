@@ -7,7 +7,7 @@
             public string Skills { get; set; } = string.Empty;    // "C#, .NET Core Web API, REST APIs"
             public int DisplayOrder { get; set; }                 // To control order (1,2,3,4,5)
             public int ResumeId { get; set; }                     // Foreign key
-            public Resume Resume { get; set; } = null;
+            public Resume Resume { get; set; } = null!;
         
     }
 }

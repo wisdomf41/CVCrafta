@@ -8,6 +8,6 @@
         public string Duration { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int ResumeId { get; set; } //Foreign key
-        public Resume Resume { get; set; } = null;
+        public Resume Resume { get; set; } = null!;
     }
 }
