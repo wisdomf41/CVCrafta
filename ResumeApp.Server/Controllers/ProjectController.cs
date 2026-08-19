@@ -10,6 +10,7 @@ namespace ResumeApp.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [NonController] // Temporarily excludes this unfinished feature from the published API.
     public class ProjectController : ControllerBase
     {
         private readonly IProjectService _projectService;

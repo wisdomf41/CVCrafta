@@ -6,5 +6,6 @@
     <Build />
     <Deploy />
   </Project>
+  <Project Path="ResumeApp.Server.Tests/ResumeApp.Server.Tests.csproj" Id="081210f5-0bac-4be5-8b4f-0946d5a30283" />
   <Project Path="ResumeApp.Server/ResumeApp.Server.csproj" />
 </Solution>

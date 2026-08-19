@@ -162,8 +162,9 @@ if (builder.Configuration.GetValue<bool>("Database:ApplyMigrations"))
 }
 
 
-//app.UseDefaultFiles(); // Must be here for publishing
-//app.MapStaticAssets(); // Must be here for publishing
+// Serves the React build and supports frontend routes.
+    app.UseDefaultFiles(); // Must be here for publishing
+    app.MapStaticAssets(); // Must be here for publishing
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -184,6 +185,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-//app.MapFallbackToFile("/index.html"); // Must be here for publishing
+
+// Keep this last so API and Swagger routes are matched first.
+app.MapFallbackToFile("/index.html"); // Must be here for publishing
 
 app.Run();
+
+public partial class Program { } // For integration API testing

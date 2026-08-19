@@ -1,29 +1,49 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+# See https://aka.ms/customizecontainer to learn how Visual Studio uses this Dockerfile.
 
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
+# This stage is used when running from Visual Studio in Fast/Debug mode.
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+# Updated: builds the React/Vite production files for the published application.
+FROM node:22-alpine AS client-build
+WORKDIR /src/resumeapp.client
 
-# This stage is used to build the service project
+COPY ["resumeapp.client/package.json", "resumeapp.client/package-lock.json", "./"]
+RUN npm ci
+
+COPY ["resumeapp.client/", "./"]
+RUN npm run build
+
+# This stage builds the ASP.NET Core application.
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
 COPY ["ResumeApp.Server/ResumeApp.Server.csproj", "ResumeApp.Server/"]
 RUN dotnet restore "./ResumeApp.Server/ResumeApp.Server.csproj"
-COPY . .
-WORKDIR "/src/ResumeApp.Server"
-RUN dotnet build "./ResumeApp.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
+COPY . .
+
+# Copy Vite's production output into the ASP.NET Core web root before publishing.
+COPY --from=client-build /src/resumeapp.client/dist ./ResumeApp.Server/wwwroot
+
+WORKDIR "/src/ResumeApp.Server"
+RUN dotnet build "./ResumeApp.Server.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/build
+
+# This stage publishes the complete application.
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./ResumeApp.Server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./ResumeApp.Server.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/publish \
+    /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+# This is the final production image.
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
