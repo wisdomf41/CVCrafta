@@ -35,6 +35,12 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ResumeDbContext>()
     .AddDefaultTokenProviders();
 
+// Added a two-hour lifetime for email-confirmation tokens.
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromHours(2);
+});
+
 //JWT Configuration Varables
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException(
@@ -69,6 +75,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
+builder.Services.AddScoped<IEmailVerificationSender, DevelopmentEmailVerificationSender>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 

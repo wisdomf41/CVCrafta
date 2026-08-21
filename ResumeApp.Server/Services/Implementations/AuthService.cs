@@ -9,21 +9,27 @@ using System.Text;
 
 namespace ResumeApp.Server.Services.Implementations
 {
-    public class AuthService : IAuthService    {
+    public class AuthService : IAuthService
+    {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly IEmailVerificationSender _emailVerificationSender;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IEmailVerificationSender emailVerificationSender)
         {
             _userManager = userManager;
             _configuration = configuration;
+            _emailVerificationSender = emailVerificationSender;
         }
 
-        public async Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto)
+        public async Task<(bool Success, string Message)> RegisterAsync(
+            RegisterDto dto)
         {
             var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+
             if (existingUser != null)
             {
                 return (false, "User already exists.");
@@ -40,9 +46,20 @@ namespace ResumeApp.Server.Services.Implementations
 
             if (!result.Succeeded)
             {
-                var errors = string.Join(" | ", result.Errors.Select(e => e.Description));
+                var errors = string.Join(
+                    " | ",
+                    result.Errors.Select(error => error.Description));
+
                 return (false, errors);
             }
+
+            // Added secure email-confirmation token generation.
+            var confirmationToken =
+                await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            await _emailVerificationSender.SendVerificationLinkAsync(
+                user,
+                confirmationToken);
 
             return (true, "Registration successful.");
         }
@@ -50,12 +67,15 @@ namespace ResumeApp.Server.Services.Implementations
         public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
+
             if (user == null)
             {
                 return null;
             }
 
-            var validPassword = await _userManager.CheckPasswordAsync(user, dto.Password);
+            var validPassword =
+                await _userManager.CheckPasswordAsync(user, dto.Password);
+
             if (!validPassword)
             {
                 return null;
@@ -71,30 +91,84 @@ namespace ResumeApp.Server.Services.Implementations
             };
         }
 
+        public async Task<(bool Success, string Message)> ConfirmEmailAsync(
+            string userId,
+            string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return (false, "Invalid or expired verification link.");
+            }
+
+            if (await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return (true, "Email has already been confirmed.");
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+
+            if (!result.Succeeded)
+            {
+                return (false, "Invalid or expired verification link.");
+            }
+
+            return (true, "Email confirmed successfully.");
+        }
+
+        public async Task<(bool Success, string Message)>
+            ResendEmailConfirmationAsync(string email)
+        {
+            var genericMessage =
+                "If an unverified account exists, a new verification link has been generated.";
+
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null ||
+                await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return (true, genericMessage);
+            }
+
+            var confirmationToken =
+                await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            await _emailVerificationSender.SendVerificationLinkAsync(
+                user,
+                confirmationToken);
+
+            return (true, genericMessage);
+        }
+
         private string GenerateJwtToken(ApplicationUser user)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.FullName),
-                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+                new(ClaimTypes.NameIdentifier, user.Id),
+                new(ClaimTypes.Name, user.FullName),
+                new(ClaimTypes.Email, user.Email ?? string.Empty)
             };
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
+            var jwtKey = _configuration["Jwt:Key"]
+                ?? throw new InvalidOperationException(
+                    "JWT signing key is missing.");
 
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtKey));
+
+            var credentials = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(7),
-                signingCredentials: creds
-            );
+                signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
-

@@ -6,5 +6,13 @@ namespace ResumeApp.Server.Services.Interfaces
     {
         Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto);
         Task<AuthResponseDto?> LoginAsync(LoginDto dto);
+
+        // Added email-confirmation operations.
+        Task<(bool Success, string Message)> ConfirmEmailAsync(
+            string userId,
+            string token);
+
+        Task<(bool Success, string Message)> ResendEmailConfirmationAsync(
+            string email);
     }
 }
