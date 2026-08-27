@@ -5,7 +5,7 @@ namespace ResumeApp.Server.Services.Interfaces
     public interface IAuthService
     {
         Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto);
-        Task<AuthResponseDto?> LoginAsync(LoginDto dto);
+        Task<(AuthResponseDto? Response, string Message)> LoginAsync(LoginDto dto);
 
         // Added email-confirmation operations.
         Task<(bool Success, string Message)> ConfirmEmailAsync(

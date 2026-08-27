@@ -32,14 +32,14 @@ namespace ResumeApp.Server.Controllers.AuthController
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
         {
-            var response = await _authService.LoginAsync(dto);
+            var result = await _authService.LoginAsync(dto);
 
-            if (response == null)
+            if (result.Response == null)
             {
-                return Unauthorized("Invalid email or password.");
+                return Unauthorized(result.Message);
             }
 
-            return Ok(response);
+            return Ok(result.Response);
         }
 
         [HttpGet("confirm-email")]
@@ -54,7 +54,7 @@ namespace ResumeApp.Server.Controllers.AuthController
 
             var result = await _authService.ConfirmEmailAsync(userId, token);
 
-            if(!result.Success)
+            if (!result.Success)
             {
                 return BadRequest(result.Message);
             }

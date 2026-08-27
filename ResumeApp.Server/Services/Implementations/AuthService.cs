@@ -64,13 +64,13 @@ namespace ResumeApp.Server.Services.Implementations
             return (true, "Registration successful.");
         }
 
-        public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
+        public async Task<(AuthResponseDto? Response, string Message)> LoginAsync(LoginDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
 
             if (user == null)
             {
-                return null;
+                return (null, "Invalid email or password.");
             }
 
             var validPassword =
@@ -78,17 +78,26 @@ namespace ResumeApp.Server.Services.Implementations
 
             if (!validPassword)
             {
-                return null;
+                return (null, "Invalid email or password.");
+            }
+
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return (
+                    null,
+                    "Please confirm your email before logging in.");
             }
 
             var token = GenerateJwtToken(user);
 
-            return new AuthResponseDto
+            var response = new AuthResponseDto
             {
                 Token = token,
                 Email = user.Email ?? string.Empty,
                 FullName = user.FullName
             };
+
+            return (response, string.Empty);
         }
 
         public async Task<(bool Success, string Message)> ConfirmEmailAsync(

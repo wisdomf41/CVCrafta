@@ -8,6 +8,7 @@ using ResumeApp.Server.Services.Interfaces;
 using ResumeApp.Server.Tests.Infrastructure;
 using System.Net;
 using System.Net.Http.Json;
+using ResumeApp.Server.DTOs.Auth;
 
 namespace ResumeApp.Server.Tests.Integration;
 
@@ -193,6 +194,77 @@ public class EmailVerificationApiIntegrationTests :
         Assert.Contains(
             "If an unverified account exists",
             responseContent);
+    }
+
+    // Updated: Login is blocked before confirmation and succeeds afterward.
+    [Fact]
+    public async Task Login_WhenEmailIsUnconfirmed_ReturnsUnauthorized()
+    {
+        var sender = new RecordingEmailVerificationSender();
+
+        using var application = CreateApplication(sender);
+        using var client = application.CreateClient();
+
+        var email = CreateUniqueEmail("login-unconfirmed");
+
+        await RegisterAsync(client, email);
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/Auth/login",
+            new
+            {
+                email,
+                password = ValidPassword
+            });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains(
+            "Please confirm your email before logging in.",
+            responseContent);
+    }
+
+    [Fact]
+    public async Task Login_AfterEmailConfirmation_ReturnsJwtToken()
+    {
+        var sender = new RecordingEmailVerificationSender();
+
+        using var application = CreateApplication(sender);
+        using var client = application.CreateClient();
+
+        var email = CreateUniqueEmail("login-confirmed");
+
+        await RegisterAsync(client, email);
+
+        var verification = Assert.Single(
+            sender.Messages,
+            message => message.Email == email);
+
+        using var confirmationResponse = await client.GetAsync(
+            CreateConfirmationPath(verification));
+
+        Assert.Equal(
+            HttpStatusCode.OK,
+            confirmationResponse.StatusCode);
+
+        using var loginResponse = await client.PostAsJsonAsync(
+            "/api/Auth/login",
+            new
+            {
+                email,
+                password = ValidPassword
+            });
+
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+
+        var authResponse =
+            await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+
+        Assert.NotNull(authResponse);
+        Assert.False(string.IsNullOrWhiteSpace(authResponse.Token));
+        Assert.Equal(3, authResponse.Token.Split('.').Length);
     }
 
     private WebApplicationFactory<Program> CreateApplication(

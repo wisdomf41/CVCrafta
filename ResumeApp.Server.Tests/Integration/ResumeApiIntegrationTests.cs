@@ -3,17 +3,22 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using ResumeApp.Server.ApplicationUserModel;
 
 namespace ResumeApp.Server.Tests.Integration;
 
 public class ResumeApiIntegrationTests
     : IClassFixture<CustomWebApplicationFactory>
 {
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
     public ResumeApiIntegrationTests(
         CustomWebApplicationFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
     }
 
@@ -117,6 +122,8 @@ public class ResumeApiIntegrationTests
 
         Assert.Equal(HttpStatusCode.OK, registrationResponse.StatusCode);
 
+        await ConfirmRegisteredUserAsync(email);
+
         var loginResponse = await _client.PostAsJsonAsync(
             "/api/Auth/login",
             login);
@@ -186,6 +193,8 @@ public class ResumeApiIntegrationTests
             registration);
 
         Assert.Equal(HttpStatusCode.OK, registrationResponse.StatusCode);
+
+        await ConfirmRegisteredUserAsync(email);
 
         var loginResponse = await _client.PostAsJsonAsync(
             "/api/Auth/login",
@@ -259,6 +268,32 @@ public class ResumeApiIntegrationTests
         Assert.NotNull(response.Headers.Location);
     }
 
+    // Updated: Confirm test accounts before requesting authenticated JWTs.
+    private async Task ConfirmRegisteredUserAsync(string email)
+    {
+        using var scope = _factory.Services.CreateScope();
+
+        var userManager = scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
+        var user = await userManager.FindByEmailAsync(email);
+
+        Assert.NotNull(user);
+
+        var confirmationToken =
+            await userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        var result = await userManager.ConfirmEmailAsync(
+            user,
+            confirmationToken);
+
+        Assert.True(
+            result.Succeeded,
+            string.Join(
+                " | ",
+                result.Errors.Select(error => error.Description)));
+    }
+
     private async Task<string> RegisterAndLoginAsync(string emailPrefix)
     {
         var email = $"{emailPrefix}-{Guid.NewGuid()}@example.com";
@@ -274,6 +309,8 @@ public class ResumeApiIntegrationTests
             });
 
         Assert.Equal(HttpStatusCode.OK, registrationResponse.StatusCode);
+
+        await ConfirmRegisteredUserAsync(email);
 
         var loginResponse = await _client.PostAsJsonAsync(
             "/api/Auth/login",
