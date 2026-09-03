@@ -231,6 +231,45 @@ describe('RegisterPage', () => {
         )
     })
 
+    // Verifies an initial delivery failure still opens the resend recovery path.
+    it('opens confirmation recovery when initial delivery does not arrive', async () => {
+        axiosClient.post.mockResolvedValue({
+            data: 'Registration successful. If the confirmation email does not arrive, request a new one.',
+        })
+
+        renderRegisterPage()
+
+        fireEvent.change(screen.getByLabelText('Full name'), {
+            target: { value: 'Test User' },
+        })
+        fireEvent.change(screen.getByLabelText('Email address'), {
+            target: { value: 'user@example.com' },
+        })
+        fireEvent.change(screen.getByLabelText('Password'), {
+            target: { value: 'Password123!' },
+        })
+        fireEvent.change(screen.getByLabelText('Confirm password'), {
+            target: { value: 'Password123!' },
+        })
+
+        const form = screen
+            .getByRole('button', { name: 'Create account' })
+            .closest('form')
+
+        fireEvent.submit(form)
+
+        expect(
+            await screen.findByRole('heading', { name: 'Confirm your email' }),
+        ).toBeInTheDocument()
+        expect(screen.getByText('user@example.com')).toBeInTheDocument()
+        expect(
+            screen.getByRole('button', {
+                name: 'Resend confirmation email',
+            }),
+        ).toBeEnabled()
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    })
+
     // Verifies submitted passwords are absent from the destination and browser storage.
     it('does not display or persist password data after registration', async () => {
         const submittedPassword = 'PrivatePassword123!'

@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import axiosClient from "../../../core/api/axiosClient";
 
-// Presents safe confirmation guidance and guards resend requests from duplication.
+// Presents delivery-neutral guidance and guards resend requests from duplication.
 function EmailConfirmationPendingPage() {
     const location = useLocation();
     const email =
@@ -70,15 +70,15 @@ function EmailConfirmationPendingPage() {
                             account before signing in.
                         </p>
                         <p className="mt-4 text-slate-600">
-                            We sent a confirmation link to{" "}
+                            The account is registered for{" "}
                             <strong className="break-all font-bold text-slate-900">
                                 {email}
                             </strong>
                             .
                         </p>
                         <p className="mt-3 leading-7 text-slate-600">
-                            Check your inbox and spam/junk folder, then follow the link in
-                            the email.
+                            Check your inbox and spam/junk folder for the confirmation
+                            link. If it has not arrived, request another email below.
                         </p>
 
                         {resendSuccess && (

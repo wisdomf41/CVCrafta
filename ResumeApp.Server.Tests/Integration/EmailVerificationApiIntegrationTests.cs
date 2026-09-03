@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using ResumeApp.Server.ApplicationUserModel;
+using ResumeApp.Server.Services.Implementations;
 using ResumeApp.Server.Services.Interfaces;
 using ResumeApp.Server.Tests.Infrastructure;
 using System.Net;
@@ -12,7 +14,7 @@ using ResumeApp.Server.DTOs.Auth;
 
 namespace ResumeApp.Server.Tests.Integration;
 
-// Added integration coverage for email confirmation and resend behavior.
+// Covers token expiry, confirmation, resend, and recoverable delivery failures.
 public class EmailVerificationApiIntegrationTests :
     IClassFixture<CustomWebApplicationFactory>
 {
@@ -24,6 +26,20 @@ public class EmailVerificationApiIntegrationTests :
         CustomWebApplicationFactory factory)
     {
         _factory = factory;
+    }
+
+    [Fact]
+    public void EmailConfirmationTokenLifetime_IsExactlyTwoHours()
+    {
+        var sender = new RecordingEmailVerificationSender();
+
+        using var application = CreateApplication(sender);
+
+        var options = application.Services
+            .GetRequiredService<IOptions<DataProtectionTokenProviderOptions>>()
+            .Value;
+
+        Assert.Equal(TimeSpan.FromHours(2), options.TokenLifespan);
     }
 
     [Fact]
@@ -196,6 +212,107 @@ public class EmailVerificationApiIntegrationTests :
             responseContent);
     }
 
+    [Fact]
+    public async Task Register_WhenDeliveryFails_RemainsRecoverable()
+    {
+        var sender = new FailOnFirstEmailVerificationSender();
+
+        using var application = CreateApplication(sender);
+        using var client = application.CreateClient();
+
+        var email = CreateUniqueEmail("delivery-failure");
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/Auth/register",
+            new
+            {
+                fullName = "Delivery Failure Test",
+                email,
+                password = ValidPassword
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains(
+            "Registration successful. If the confirmation email does not arrive, " +
+            "request a new one.",
+            responseContent);
+        Assert.DoesNotContain(
+            FailOnFirstEmailVerificationSender.SensitiveDetail,
+            responseContent);
+        Assert.DoesNotContain(sender.ConfirmationToken, responseContent);
+
+        var user = await GetUserAsync(application, email);
+
+        using var scope = application.Services.CreateScope();
+
+        var userManager = scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
+        Assert.False(await userManager.IsEmailConfirmedAsync(user));
+
+        using var resendResponse = await client.PostAsJsonAsync(
+            "/api/Auth/resend-email-confirmation",
+            new
+            {
+                email
+            });
+
+        Assert.Equal(HttpStatusCode.OK, resendResponse.StatusCode);
+        Assert.Contains(
+            "If an unverified account exists",
+            await resendResponse.Content.ReadAsStringAsync());
+        Assert.Equal(2, sender.SendCount);
+
+        using var retryResponse = await client.PostAsJsonAsync(
+            "/api/Auth/register",
+            new
+            {
+                fullName = "Delivery Failure Test",
+                email,
+                password = ValidPassword
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, retryResponse.StatusCode);
+        Assert.Contains(
+            "User already exists.",
+            await retryResponse.Content.ReadAsStringAsync());
+    }
+
+    [Fact]
+    public async Task Resend_WhenDeliveryFails_PreservesGenericResponse()
+    {
+        var sender = new FailOnSecondEmailVerificationSender();
+
+        using var application = CreateApplication(sender);
+        using var client = application.CreateClient();
+
+        var email = CreateUniqueEmail("resend-delivery-failure");
+
+        await RegisterAsync(client, email);
+
+        using var response = await client.PostAsJsonAsync(
+            "/api/Auth/resend-email-confirmation",
+            new
+            {
+                email
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        Assert.Contains(
+            "If an unverified account exists",
+            responseContent);
+        Assert.DoesNotContain(
+            FailOnSecondEmailVerificationSender.SensitiveDetail,
+            responseContent);
+        Assert.DoesNotContain(sender.LastToken, responseContent);
+    }
+
     // Updated: Login is blocked before confirmation and succeeds afterward.
     [Fact]
     public async Task Login_WhenEmailIsUnconfirmed_ReturnsUnauthorized()
@@ -268,7 +385,7 @@ public class EmailVerificationApiIntegrationTests :
     }
 
     private WebApplicationFactory<Program> CreateApplication(
-        RecordingEmailVerificationSender sender)
+        IEmailVerificationSender sender)
     {
         return _factory.WithWebHostBuilder(builder =>
         {
@@ -351,4 +468,58 @@ public class EmailVerificationApiIntegrationTests :
         string Email,
         string UserId,
         string Token);
+
+    private sealed class FailOnFirstEmailVerificationSender :
+        IEmailVerificationSender
+    {
+        public const string SensitiveDetail =
+            "test-only-sensitive-provider-detail";
+
+        public string ConfirmationToken { get; private set; } = string.Empty;
+
+        public int SendCount { get; private set; }
+
+        public Task SendVerificationLinkAsync(
+            ApplicationUser user,
+            string token,
+            CancellationToken cancellationToken = default)
+        {
+            SendCount++;
+            ConfirmationToken = token;
+
+            if (SendCount == 1)
+            {
+                throw new EmailDeliveryException(SensitiveDetail);
+            }
+
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class FailOnSecondEmailVerificationSender :
+        IEmailVerificationSender
+    {
+        public const string SensitiveDetail =
+            "test-only-sensitive-provider-detail";
+
+        private int _sendCount;
+
+        public string LastToken { get; private set; } = string.Empty;
+
+        public Task SendVerificationLinkAsync(
+            ApplicationUser user,
+            string token,
+            CancellationToken cancellationToken = default)
+        {
+            _sendCount++;
+            LastToken = token;
+
+            if (_sendCount > 1)
+            {
+                throw new EmailDeliveryException(SensitiveDetail);
+            }
+
+            return Task.CompletedTask;
+        }
+    }
 }

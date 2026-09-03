@@ -14,15 +14,18 @@ namespace ResumeApp.Server.Services.Implementations
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IEmailVerificationSender _emailVerificationSender;
+        private readonly ILogger<AuthService> _logger;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             IConfiguration configuration,
-            IEmailVerificationSender emailVerificationSender)
+            IEmailVerificationSender emailVerificationSender,
+            ILogger<AuthService> logger)
         {
             _userManager = userManager;
             _configuration = configuration;
             _emailVerificationSender = emailVerificationSender;
+            _logger = logger;
         }
 
         public async Task<(bool Success, string Message)> RegisterAsync(
@@ -57,9 +60,23 @@ namespace ResumeApp.Server.Services.Implementations
             var confirmationToken =
                 await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            await _emailVerificationSender.SendVerificationLinkAsync(
-                user,
-                confirmationToken);
+            // Keeps the created account recoverable without exposing provider details.
+            try
+            {
+                await _emailVerificationSender.SendVerificationLinkAsync(
+                    user,
+                    confirmationToken);
+            }
+            catch (EmailDeliveryException)
+            {
+                _logger.LogWarning(
+                    "Registration completed but verification delivery failed.");
+
+                return (
+                    true,
+                    "Registration successful. If the confirmation email " +
+                    "does not arrive, request a new one.");
+            }
 
             return (true, "Registration successful.");
         }
@@ -143,9 +160,17 @@ namespace ResumeApp.Server.Services.Implementations
             var confirmationToken =
                 await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            await _emailVerificationSender.SendVerificationLinkAsync(
-                user,
-                confirmationToken);
+            try
+            {
+                await _emailVerificationSender.SendVerificationLinkAsync(
+                    user,
+                    confirmationToken);
+            }
+            catch (EmailDeliveryException)
+            {
+                _logger.LogWarning(
+                    "Email confirmation resend delivery failed.");
+            }
 
             return (true, genericMessage);
         }

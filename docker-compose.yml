@@ -9,6 +9,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
       Database__ApplyMigrations: "true"
+      App__PublicBaseUrl: http://localhost:8080
+      EmailDelivery__Provider: Development
 
       ConnectionStrings__DefaultConnection: >-
         Server=sqlserver,1433;

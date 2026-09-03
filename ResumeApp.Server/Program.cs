@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using ResumeApp.Server.ApplicationUserModel;
 using ResumeApp.Server.Data;
+using ResumeApp.Server.Extensions;
 using ResumeApp.Server.Services.Implementations;
 using ResumeApp.Server.Services.Interfaces;
 using System.Text;
@@ -75,7 +76,12 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<IEmailVerificationSender, DevelopmentEmailVerificationSender>();
+
+// Select the explicitly configured verification delivery provider.
+builder.Services.AddEmailVerificationDelivery(
+    builder.Configuration,
+    builder.Environment);
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 
