@@ -14,7 +14,6 @@ function RegisterPage() {
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
-    const [successMessage, setSuccessMessage] = useState("");
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -25,11 +24,11 @@ function RegisterPage() {
         }));
     };
 
+    // Carries only the registered email into the confirmation-pending experience.
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         setError("");
-        setSuccessMessage("");
 
         if (formData.password !== formData.confirmPassword) {
             setError("Passwords do not match.");
@@ -44,22 +43,24 @@ function RegisterPage() {
         setIsSubmitting(true);
 
         try {
+            const registeredEmail = formData.email.trim();
+
             await axiosClient.post("/auth/register", {
                 fullName: formData.fullName.trim(),
-                email: formData.email.trim(),
+                email: registeredEmail,
                 password: formData.password,
             });
 
-            setSuccessMessage(
-                "Account created successfully. Redirecting to login..."
-            );
+            setFormData((previous) => ({
+                ...previous,
+                password: "",
+                confirmPassword: "",
+            }));
 
-            setTimeout(() => {
-                navigate("/login");
-            }, 1200);
+            navigate("/confirm-email-pending", {
+                state: { email: registeredEmail },
+            });
         } catch (error) {
-            console.error("Registration failed:", error);
-
             let message =
                 error.response?.data?.message ||
                 error.response?.data?.title ||
@@ -176,15 +177,6 @@ function RegisterPage() {
                                 className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
                             >
                                 {error}
-                            </div>
-                        )}
-
-                        {successMessage && (
-                            <div
-                                role="status"
-                                className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700"
-                            >
-                                {successMessage}
                             </div>
                         )}
 

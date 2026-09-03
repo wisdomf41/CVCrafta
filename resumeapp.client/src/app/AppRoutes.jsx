@@ -3,6 +3,7 @@ import PublicResumePage from "../features/resume/pages/PublicResumePage.jsx";
 import MyResumePage from "../features/resume/pages/MyResumePage.jsx";
 import LoginPage from "../features/auth/pages/LoginPage.jsx";
 import RegisterPage from "../features/auth/pages/RegisterPage.jsx";
+import EmailConfirmationPendingPage from "../features/auth/pages/EmailConfirmationPendingPage.jsx";
 import DashBoardPage from "../features/dashboard/pages/DashBoardPage.jsx";
 import ProtectedRoute from "../shared/components/ProtectedRoute.jsx";
 
@@ -214,6 +215,7 @@ function NotFoundPage() {
     );
 }
 
+// Keeps the registration confirmation guidance available as a public route.
 function AppRoutes() {
     return (
         <Routes>
@@ -223,6 +225,10 @@ function AppRoutes() {
 
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route
+                path="/confirm-email-pending"
+                element={<EmailConfirmationPendingPage />}
+            />
 
             <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<DashBoardPage />} />

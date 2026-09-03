@@ -1,8 +1,9 @@
 import {act,fireEvent,render,screen,} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {MemoryRouter,Route,Routes,} from 'react-router-dom'
-import {afterEach,beforeEach,describe,expect,it,vi,} from 'vitest'
+import {MemoryRouter,Route,Routes,useLocation,} from 'react-router-dom'
+import {beforeEach,describe,expect,it,vi,} from 'vitest'
 import axiosClient from '../../../core/api/axiosClient'
+import EmailConfirmationPendingPage from './EmailConfirmationPendingPage'
 import RegisterPage from './RegisterPage'
 
 vi.mock('../../../core/api/axiosClient', () => ({
@@ -11,12 +12,49 @@ vi.mock('../../../core/api/axiosClient', () => ({
     },
 }))
 
+function LocationStateProbe() {
+    const location = useLocation()
+
+    return (
+        <output data-testid="location-state">
+            {JSON.stringify(location.state)}
+        </output>
+    )
+}
+
 function renderRegisterPage() {
     return render(
         <MemoryRouter initialEntries={['/register']}>
             <Routes>
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/login" element={<p>Login page</p>} />
+                <Route
+                    path="/confirm-email-pending"
+                    element={(
+                        <>
+                            <EmailConfirmationPendingPage />
+                            <LocationStateProbe />
+                        </>
+                    )}
+                />
+            </Routes>
+        </MemoryRouter>,
+    )
+}
+
+function renderPendingPage(initialEntry = {
+    pathname: '/confirm-email-pending',
+    state: { email: 'user@example.com' },
+}) {
+    return render(
+        <MemoryRouter initialEntries={[initialEntry]}>
+            <Routes>
+                <Route
+                    path="/confirm-email-pending"
+                    element={<EmailConfirmationPendingPage />}
+                />
+                <Route path="/login" element={<p>Login page</p>} />
+                <Route path="/register" element={<p>Register page</p>} />
             </Routes>
         </MemoryRouter>,
     )
@@ -41,20 +79,10 @@ async function completeRegistrationForm(
 }
 
 describe('RegisterPage', () => {
-    let consoleErrorSpy
-
     beforeEach(() => {
         localStorage.clear()
+        sessionStorage.clear()
         vi.clearAllMocks()
-
-        consoleErrorSpy = vi
-            .spyOn(console, 'error')
-            .mockImplementation(() => { })
-    })
-
-    afterEach(() => {
-        consoleErrorSpy.mockRestore()
-        vi.useRealTimers()
     })
 
     // Verifies that the registration page displays all required controls.
@@ -159,17 +187,9 @@ describe('RegisterPage', () => {
         expect(axiosClient.post).not.toHaveBeenCalled()
     })
 
-    // Verifies the submitted API data, success message, and login redirection.
-    it('registers successfully and redirects to login', async () => {
-        vi.useFakeTimers()
-
-        let resolveRegistration
-
-        axiosClient.post.mockReturnValue(
-            new Promise((resolve) => {
-                resolveRegistration = resolve
-            }),
-        )
+    // Verifies registration opens confirmation guidance with only the submitted email.
+    it('registers successfully and opens confirmation-pending guidance', async () => {
+        axiosClient.post.mockResolvedValue({ data: 'Registration successful.' })
 
         renderRegisterPage()
 
@@ -198,19 +218,45 @@ describe('RegisterPage', () => {
             password: 'Password123!',
         })
 
-        await act(async () => {
-            resolveRegistration({ data: {} })
+        expect(
+            await screen.findByRole('heading', { name: 'Confirm your email' }),
+        ).toBeInTheDocument()
+        expect(screen.getByText(
+            'Account created successfully. Check your email to confirm your account before signing in.',
+        )).toBeInTheDocument()
+        expect(screen.getByText('user@example.com')).toBeInTheDocument()
+        expect(screen.queryByText('Login page')).not.toBeInTheDocument()
+        expect(screen.getByTestId('location-state')).toHaveTextContent(
+            JSON.stringify({ email: 'user@example.com' }),
+        )
+    })
+
+    // Verifies submitted passwords are absent from the destination and browser storage.
+    it('does not display or persist password data after registration', async () => {
+        const submittedPassword = 'PrivatePassword123!'
+        axiosClient.post.mockResolvedValue({ data: 'Registration successful.' })
+
+        const user = userEvent.setup()
+        renderRegisterPage()
+
+        await completeRegistrationForm(user, {
+            password: submittedPassword,
+            confirmPassword: submittedPassword,
         })
 
-        expect(screen.getByRole('status')).toHaveTextContent(
-            'Account created successfully. Redirecting to login...',
+        await user.click(
+            screen.getByRole('button', { name: 'Create account' }),
         )
 
-        await act(async () => {
-            await vi.advanceTimersByTimeAsync(1200)
-        })
-
-        expect(screen.getByText('Login page')).toBeInTheDocument()
+        expect(
+            await screen.findByRole('heading', { name: 'Confirm your email' }),
+        ).toBeInTheDocument()
+        expect(document.body).not.toHaveTextContent(submittedPassword)
+        expect(screen.getByTestId('location-state')).not.toHaveTextContent(
+            submittedPassword,
+        )
+        expect(localStorage).toHaveLength(0)
+        expect(sessionStorage).toHaveLength(0)
     })
 
     // Verifies that the button is disabled while registration is processing.
@@ -317,4 +363,116 @@ describe('RegisterPage', () => {
     })
 
 
+})
+
+// Covers resend feedback, request locking, and state-free confirmation navigation.
+describe('EmailConfirmationPendingPage', () => {
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
+    it('resends confirmation using the existing endpoint and shows success', async () => {
+        axiosClient.post.mockResolvedValue({
+            data: 'If an unverified account exists, a new link was generated.',
+        })
+
+        const user = userEvent.setup()
+        renderPendingPage()
+
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Resend confirmation email',
+            }),
+        )
+
+        expect(axiosClient.post).toHaveBeenCalledWith(
+            '/auth/resend-email-confirmation',
+            { email: 'user@example.com' },
+        )
+        expect(await screen.findByRole('status')).toHaveTextContent(
+            'Confirmation email sent. Check your inbox and spam/junk folder.',
+        )
+    })
+
+    it('shows inline API feedback when resend fails', async () => {
+        axiosClient.post.mockRejectedValue({
+            response: {
+                data: {
+                    message: 'Confirmation email could not be sent.',
+                },
+            },
+        })
+
+        const user = userEvent.setup()
+        renderPendingPage()
+
+        await user.click(
+            screen.getByRole('button', {
+                name: 'Resend confirmation email',
+            }),
+        )
+
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+            'Confirmation email could not be sent.',
+        )
+        expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    })
+
+    it('disables resend and prevents duplicate requests while one is running', async () => {
+        let resolveResend
+
+        axiosClient.post.mockReturnValue(
+            new Promise((resolve) => {
+                resolveResend = resolve
+            }),
+        )
+
+        renderPendingPage()
+
+        const resendButton = screen.getByRole('button', {
+            name: 'Resend confirmation email',
+        })
+
+        fireEvent.click(resendButton)
+        fireEvent.click(resendButton)
+
+        expect(
+            screen.getByRole('button', {
+                name: 'Resending confirmation email...',
+            }),
+        ).toBeDisabled()
+        expect(axiosClient.post).toHaveBeenCalledTimes(1)
+
+        await act(async () => {
+            resolveResend({ data: 'Confirmation email sent.' })
+        })
+
+        expect(
+            screen.getByRole('button', {
+                name: 'Resend confirmation email',
+            }),
+        ).toBeEnabled()
+    })
+
+    it('shows safe guidance and navigation when opened without email state', () => {
+        renderPendingPage('/confirm-email-pending')
+
+        expect(
+            screen.getByRole('heading', { name: 'Check your email' }),
+        ).toBeInTheDocument()
+        expect(screen.getByText(/check your inbox and spam\/junk folder/i))
+            .toBeInTheDocument()
+        expect(
+            screen.getByRole('link', { name: 'Register' }),
+        ).toHaveAttribute('href', '/register')
+        expect(
+            screen.getByRole('link', { name: 'Return to login' }),
+        ).toHaveAttribute('href', '/login')
+        expect(
+            screen.queryByRole('button', {
+                name: 'Resend confirmation email',
+            }),
+        ).not.toBeInTheDocument()
+        expect(axiosClient.post).not.toHaveBeenCalled()
+    })
 })
