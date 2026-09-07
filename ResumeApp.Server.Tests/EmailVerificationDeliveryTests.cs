@@ -233,6 +233,12 @@ public class EmailVerificationDeliveryTests
         Assert.Contains(
             "token=token-with%2Breserved%2Fvalue",
             message.TextBody);
+        Assert.Contains(
+            "https://resume.example.test/confirm-email#",
+            message.TextBody);
+        Assert.DoesNotContain(
+            "/api/Auth/confirm-email",
+            message.TextBody);
         Assert.Contains("Confirm email", message.HtmlBody);
         Assert.Contains("Do not share or forward it", message.HtmlBody);
         Assert.Empty(logger.Messages);

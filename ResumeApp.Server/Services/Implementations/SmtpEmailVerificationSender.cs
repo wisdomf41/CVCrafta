@@ -8,7 +8,7 @@ using System.Text.Encodings.Web;
 
 namespace ResumeApp.Server.Services.Implementations;
 
-// Sends multipart confirmation email without logging recipients, links, or credentials.
+// Sends multipart email linking to the frontend confirmation processor.
 public sealed class SmtpEmailVerificationSender :
     IEmailVerificationSender
 {
@@ -83,8 +83,8 @@ public sealed class SmtpEmailVerificationSender :
         var publicBaseUrl =
             _configuration["App:PublicBaseUrl"]!.TrimEnd('/');
 
-        return $"{publicBaseUrl}/api/Auth/confirm-email" +
-               $"?userId={Uri.EscapeDataString(userId)}" +
+        return $"{publicBaseUrl}/confirm-email" +
+               $"#userId={Uri.EscapeDataString(userId)}" +
                $"&token={Uri.EscapeDataString(token)}";
     }
 

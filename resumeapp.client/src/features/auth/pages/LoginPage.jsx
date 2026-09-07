@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosClient from "../../../core/api/axiosClient";
+import storeAuthentication from "../utils/authStorage";
 
+// Reuses the shared authentication storage path for manual sign-in.
 function LoginPage() {
     const navigate = useNavigate();
 
-    // Redirect if already logged in
     useEffect(() => {
         const token = localStorage.getItem("resume_app_token");
         if (token) {
@@ -37,20 +38,10 @@ function LoginPage() {
         try {
             const response = await axiosClient.post("/auth/login", formData);
 
-            const { token, email, fullName } = response.data;
-
-            if (!token) {
-                throw new Error("Login succeeded, but no token was returned.");
-            }
-
-            localStorage.setItem("resume_app_token", token);
-            localStorage.setItem("user_email", email ?? "");
-            localStorage.setItem("user_name", fullName ?? "");
+            storeAuthentication(response.data);
 
             navigate("/dashboard");
         } catch (error) {
-            console.error("Login failed:", error);
-
             const message =
                 error.response?.data?.message ||
                 error.response?.data?.title ||

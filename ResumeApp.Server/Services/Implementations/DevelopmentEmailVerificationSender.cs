@@ -3,7 +3,7 @@ using ResumeApp.Server.Services.Interfaces;
 
 namespace ResumeApp.Server.Services.Implementations
 {
-    // Added to log local verification links without requiring an email provider.
+    // Logs frontend confirmation links only in explicit local/test environments.
     public class DevelopmentEmailVerificationSender : IEmailVerificationSender
     {
         private readonly IConfiguration _configuration;
@@ -39,8 +39,8 @@ namespace ResumeApp.Server.Services.Implementations
                 .TrimEnd('/');
 
             var verificationLink =
-                $"{publicBaseUrl}/api/Auth/confirm-email" +
-                $"?userId={Uri.EscapeDataString(user.Id)}" +
+                $"{publicBaseUrl}/confirm-email" +
+                $"#userId={Uri.EscapeDataString(user.Id)}" +
                 $"&token={Uri.EscapeDataString(token)}";
 
             _logger.LogInformation(

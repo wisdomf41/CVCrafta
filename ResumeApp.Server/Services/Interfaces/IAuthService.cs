@@ -7,10 +7,13 @@ namespace ResumeApp.Server.Services.Interfaces
         Task<(bool Success, string Message)> RegisterAsync(RegisterDto dto);
         Task<(AuthResponseDto? Response, string Message)> LoginAsync(LoginDto dto);
 
-        // Added email-confirmation operations.
+        // Supports legacy confirmation and one-time confirmation authentication.
         Task<(bool Success, string Message)> ConfirmEmailAsync(
             string userId,
             string token);
+
+        Task<(AuthResponseDto? Response, string Message)>
+            ConfirmEmailAndLoginAsync(string userId, string token);
 
         Task<(bool Success, string Message)> ResendEmailConfirmationAsync(
             string email);

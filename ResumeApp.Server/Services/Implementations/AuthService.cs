@@ -11,6 +11,9 @@ namespace ResumeApp.Server.Services.Implementations
 {
     public class AuthService : IAuthService
     {
+        private const string InvalidConfirmationMessage =
+            "Invalid or expired verification link.";
+
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly IEmailVerificationSender _emailVerificationSender;
@@ -56,11 +59,9 @@ namespace ResumeApp.Server.Services.Implementations
                 return (false, errors);
             }
 
-            // Added secure email-confirmation token generation.
             var confirmationToken =
                 await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            // Keeps the created account recoverable without exposing provider details.
             try
             {
                 await _emailVerificationSender.SendVerificationLinkAsync(
@@ -105,16 +106,7 @@ namespace ResumeApp.Server.Services.Implementations
                     "Please confirm your email before logging in.");
             }
 
-            var token = GenerateJwtToken(user);
-
-            var response = new AuthResponseDto
-            {
-                Token = token,
-                Email = user.Email ?? string.Empty,
-                FullName = user.FullName
-            };
-
-            return (response, string.Empty);
+            return (CreateAuthResponse(user), string.Empty);
         }
 
         public async Task<(bool Success, string Message)> ConfirmEmailAsync(
@@ -125,7 +117,7 @@ namespace ResumeApp.Server.Services.Implementations
 
             if (user == null)
             {
-                return (false, "Invalid or expired verification link.");
+                return (false, InvalidConfirmationMessage);
             }
 
             if (await _userManager.IsEmailConfirmedAsync(user))
@@ -137,10 +129,38 @@ namespace ResumeApp.Server.Services.Implementations
 
             if (!result.Succeeded)
             {
-                return (false, "Invalid or expired verification link.");
+                return (false, InvalidConfirmationMessage);
             }
 
             return (true, "Email confirmed successfully.");
+        }
+
+        // Confirms an unused link before creating the normal login response.
+        public async Task<(AuthResponseDto? Response, string Message)>
+            ConfirmEmailAndLoginAsync(string userId, string token)
+        {
+            if (string.IsNullOrWhiteSpace(userId) ||
+                string.IsNullOrWhiteSpace(token))
+            {
+                return (null, InvalidConfirmationMessage);
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null ||
+                await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return (null, InvalidConfirmationMessage);
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+
+            if (!result.Succeeded)
+            {
+                return (null, InvalidConfirmationMessage);
+            }
+
+            return (CreateAuthResponse(user), string.Empty);
         }
 
         public async Task<(bool Success, string Message)>
@@ -173,6 +193,16 @@ namespace ResumeApp.Server.Services.Implementations
             }
 
             return (true, genericMessage);
+        }
+
+        private AuthResponseDto CreateAuthResponse(ApplicationUser user)
+        {
+            return new AuthResponseDto
+            {
+                Token = GenerateJwtToken(user),
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName
+            };
         }
 
         private string GenerateJwtToken(ApplicationUser user)

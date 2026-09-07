@@ -42,6 +42,30 @@ namespace ResumeApp.Server.Controllers.AuthController
             return Ok(result.Response);
         }
 
+        // Exchanges an unused confirmation link for the normal auth response.
+        [HttpPost("confirm-email")]
+        public async Task<ActionResult<AuthResponseDto>> ConfirmEmailAndLogin(
+            [FromBody] ConfirmEmailDto? dto)
+        {
+            if (dto == null ||
+                string.IsNullOrWhiteSpace(dto.UserId) ||
+                string.IsNullOrWhiteSpace(dto.Token))
+            {
+                return BadRequest("Invalid or expired verification link.");
+            }
+
+            var result = await _authService.ConfirmEmailAndLoginAsync(
+                dto.UserId,
+                dto.Token);
+
+            if (result.Response == null)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Response);
+        }
+
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmail(
             [FromQuery] string userId,
