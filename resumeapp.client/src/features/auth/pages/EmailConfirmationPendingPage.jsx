@@ -1,10 +1,15 @@
-import { useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axiosClient from "../../../core/api/axiosClient";
+import {
+    hasValidAuthenticationStorage,
+    isAuthenticationStorageKey,
+} from "../utils/authStorage";
 
-// Presents delivery-neutral guidance and guards resend requests from duplication.
+// Synchronizes pending tabs when another tab completes authentication.
 function EmailConfirmationPendingPage() {
     const location = useLocation();
+    const navigate = useNavigate();
     const email =
         typeof location.state?.email === "string"
             ? location.state.email.trim()
@@ -13,6 +18,44 @@ function EmailConfirmationPendingPage() {
     const [isResending, setIsResending] = useState(false);
     const [resendSuccess, setResendSuccess] = useState("");
     const [resendError, setResendError] = useState("");
+
+    useEffect(() => {
+        const redirectIfAuthenticated = () => {
+            if (hasValidAuthenticationStorage()) {
+                navigate("/dashboard", { replace: true });
+            }
+        };
+
+        const handleStorage = (event) => {
+            if (
+                event.storageArea === localStorage &&
+                event.newValue !== null &&
+                isAuthenticationStorageKey(event.key)
+            ) {
+                redirectIfAuthenticated();
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                redirectIfAuthenticated();
+            }
+        };
+
+        redirectIfAuthenticated();
+        window.addEventListener("storage", handleStorage);
+        window.addEventListener("focus", redirectIfAuthenticated);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener("storage", handleStorage);
+            window.removeEventListener("focus", redirectIfAuthenticated);
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
+        };
+    }, [navigate]);
 
     const handleResend = async () => {
         if (!email || resendInFlight.current) {

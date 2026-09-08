@@ -1,8 +1,17 @@
 import {act,fireEvent,render,screen,} from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {MemoryRouter,Route,Routes,useLocation,} from 'react-router-dom'
-import {beforeEach,describe,expect,it,vi,} from 'vitest'
+import {
+    MemoryRouter,
+    Route,
+    Routes,
+    useLocation,
+    useNavigationType,
+} from 'react-router-dom'
+import {afterEach,beforeEach,describe,expect,it,vi,} from 'vitest'
 import axiosClient from '../../../core/api/axiosClient'
+import storeAuthentication, {
+    AUTH_STORAGE_KEYS,
+} from '../utils/authStorage'
 import EmailConfirmationPendingPage from './EmailConfirmationPendingPage'
 import RegisterPage from './RegisterPage'
 
@@ -19,6 +28,19 @@ function LocationStateProbe() {
         <output data-testid="location-state">
             {JSON.stringify(location.state)}
         </output>
+    )
+}
+
+function DashboardProbe() {
+    const navigationType = useNavigationType()
+
+    return (
+        <>
+            <p>Dashboard page</p>
+            <output data-testid="dashboard-navigation-type">
+                {navigationType}
+            </output>
+        </>
     )
 }
 
@@ -55,9 +77,18 @@ function renderPendingPage(initialEntry = {
                 />
                 <Route path="/login" element={<p>Login page</p>} />
                 <Route path="/register" element={<p>Register page</p>} />
+                <Route path="/dashboard" element={<DashboardProbe />} />
             </Routes>
         </MemoryRouter>,
     )
+}
+
+function storeCompleteAuthentication() {
+    storeAuthentication({
+        token: 'header.payload.signature',
+        email: 'user@example.com',
+        fullName: 'Test User',
+    })
 }
 
 async function completeRegistrationForm(
@@ -404,10 +435,139 @@ describe('RegisterPage', () => {
 
 })
 
-// Covers resend feedback, request locking, and state-free confirmation navigation.
+// Covers pending-page synchronization, resend handling, and safe navigation.
 describe('EmailConfirmationPendingPage', () => {
     beforeEach(() => {
+        localStorage.clear()
         vi.clearAllMocks()
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it('replace-navigates after another tab stores complete authentication', async () => {
+        renderPendingPage()
+
+        act(() => {
+            storeCompleteAuthentication()
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: AUTH_STORAGE_KEYS.fullName,
+                newValue: 'Test User',
+                storageArea: localStorage,
+            }))
+        })
+
+        expect(await screen.findByText('Dashboard page')).toBeInTheDocument()
+        expect(screen.getByTestId('dashboard-navigation-type')).toHaveTextContent(
+            'REPLACE',
+        )
+    })
+
+    it('rechecks complete authentication when the pending tab regains focus', async () => {
+        renderPendingPage()
+        storeCompleteAuthentication()
+
+        act(() => {
+            window.dispatchEvent(new Event('focus'))
+        })
+
+        expect(await screen.findByText('Dashboard page')).toBeInTheDocument()
+    })
+
+    it('rechecks complete authentication when the pending tab becomes visible', async () => {
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+        renderPendingPage()
+        storeCompleteAuthentication()
+
+        act(() => {
+            document.dispatchEvent(new Event('visibilitychange'))
+        })
+
+        expect(await screen.findByText('Dashboard page')).toBeInTheDocument()
+    })
+
+    it('replace-navigates when the pending page initially has complete authentication', async () => {
+        storeCompleteAuthentication()
+
+        renderPendingPage()
+
+        expect(await screen.findByText('Dashboard page')).toBeInTheDocument()
+        expect(screen.getByTestId('dashboard-navigation-type')).toHaveTextContent(
+            'REPLACE',
+        )
+    })
+
+    it('does not redirect for unrelated, incomplete, malformed, or logout storage events', () => {
+        renderPendingPage()
+
+        act(() => {
+            localStorage.setItem('unrelated_setting', 'value')
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: 'unrelated_setting',
+                newValue: 'value',
+                storageArea: localStorage,
+            }))
+
+            localStorage.setItem(
+                AUTH_STORAGE_KEYS.token,
+                'header.payload.signature',
+            )
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: AUTH_STORAGE_KEYS.token,
+                newValue: 'header.payload.signature',
+                storageArea: localStorage,
+            }))
+
+            localStorage.setItem(AUTH_STORAGE_KEYS.email, 'not-an-email')
+            localStorage.setItem(AUTH_STORAGE_KEYS.fullName, 'Test User')
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: AUTH_STORAGE_KEYS.fullName,
+                newValue: 'Test User',
+                storageArea: localStorage,
+            }))
+
+            localStorage.removeItem(AUTH_STORAGE_KEYS.token)
+            window.dispatchEvent(new StorageEvent('storage', {
+                key: AUTH_STORAGE_KEYS.token,
+                oldValue: 'header.payload.signature',
+                newValue: null,
+                storageArea: localStorage,
+            }))
+        })
+
+        expect(screen.getByText('Confirm your email')).toBeInTheDocument()
+        expect(screen.queryByText('Dashboard page')).not.toBeInTheDocument()
+    })
+
+    it('removes every synchronization listener when unmounted', () => {
+        const windowAddSpy = vi.spyOn(window, 'addEventListener')
+        const windowRemoveSpy = vi.spyOn(window, 'removeEventListener')
+        const documentAddSpy = vi.spyOn(document, 'addEventListener')
+        const documentRemoveSpy = vi.spyOn(document, 'removeEventListener')
+        const { unmount } = renderPendingPage()
+
+        const storageHandler = windowAddSpy.mock.calls.find(
+            ([eventName]) => eventName === 'storage',
+        )[1]
+        const focusHandler = windowAddSpy.mock.calls.find(
+            ([eventName]) => eventName === 'focus',
+        )[1]
+        const visibilityHandler = documentAddSpy.mock.calls.find(
+            ([eventName]) => eventName === 'visibilitychange',
+        )[1]
+
+        unmount()
+
+        expect(windowRemoveSpy).toHaveBeenCalledWith(
+            'storage',
+            storageHandler,
+        )
+        expect(windowRemoveSpy).toHaveBeenCalledWith('focus', focusHandler)
+        expect(documentRemoveSpy).toHaveBeenCalledWith(
+            'visibilitychange',
+            visibilityHandler,
+        )
     })
 
     it('resends confirmation using the existing endpoint and shows success', async () => {
