@@ -226,9 +226,9 @@ public class EmailVerificationDeliveryTests
         var message = Assert.IsType<MimeMessage>(client.Message);
 
         Assert.Equal(
-            "Confirm your ResumeApp account",
+            "Confirm your CVCrafta account",
             message.Subject);
-        Assert.Contains("ResumeApp", message.TextBody);
+        Assert.Contains("CVCrafta", message.TextBody);
         Assert.Contains("expires in 2 hours", message.TextBody);
         Assert.Contains(
             "token=token-with%2Breserved%2Fvalue",

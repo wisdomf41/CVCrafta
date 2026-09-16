@@ -92,7 +92,7 @@ function RegisterPage() {
 
                     <div className="relative">
                         <div className="inline-flex rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-blue-200">
-                            ResumeApp Workspace
+                            CVCrafta Workspace
                         </div>
 
                         <h1 className="mt-7 text-4xl font-extrabold leading-tight tracking-tight">
@@ -155,7 +155,7 @@ function RegisterPage() {
                     <div className="mx-auto w-full max-w-md">
                         <div className="lg:hidden">
                             <div className="inline-flex rounded-full bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">
-                                ResumeApp Workspace
+                                CVCrafta Workspace
                             </div>
                         </div>
 

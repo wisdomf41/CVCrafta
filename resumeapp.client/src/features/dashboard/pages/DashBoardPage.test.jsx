@@ -93,7 +93,7 @@ describe('DashBoardPage', () => {
         expect(
             screen.getByRole('heading', { name: 'Welcome back' }),
         ).toBeInTheDocument()
-        expect(screen.getByText('R')).toBeInTheDocument()
+        expect(screen.getByText('C')).toBeInTheDocument()
         expect(
             screen.queryByText(/Signed in as/i),
         ).not.toBeInTheDocument()

@@ -139,7 +139,7 @@ function HomePage() {
                                 </p>
 
                                 <p className="mt-2 text-sm text-slate-600">
-                                    ResumeApp — React frontend, ASP.NET Core backend, JWT login,
+                                    CVCrafta — React frontend, ASP.NET Core backend, JWT login,
                                     private dashboard, and public resume preview.
                                 </p>
                             </div>

@@ -47,12 +47,12 @@ function AppNavbar() {
                         className="flex items-center gap-2"
                     >
                         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-lg font-extrabold text-white shadow-sm">
-                            R
+                            C
                         </div>
 
                         <div>
                             <p className="text-lg font-extrabold tracking-tight text-slate-950">
-                                ResumeApp
+                                CVCrafta
                             </p>
 
                             <p className="-mt-1 hidden text-xs font-medium text-slate-500 sm:block">

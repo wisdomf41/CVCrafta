@@ -1,6 +1,6 @@
 # Email verification delivery
 
-ResumeApp selects its email-verification sender with
+CVCrafta selects its email-verification sender with
 `EmailDelivery:Provider`.
 
 - Use `Development` only in the ASP.NET Core `Development` or `Testing`
