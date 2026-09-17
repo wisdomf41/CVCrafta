@@ -501,7 +501,7 @@ Current documentation includes:
 
 ## License
 
-A license will be finalized before the public open-source release.
+CVCrafta is licensed under the [MIT License](./LICENSE).
 
 ---
 
