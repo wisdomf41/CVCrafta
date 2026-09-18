@@ -9,6 +9,9 @@ obj/
 .env.*
 !.env.example
 
+# Local secret-scan reports
+gitleaks-report.*
+
 # Visual Studio upgrade reports
 UpgradeLog*.htm
 
