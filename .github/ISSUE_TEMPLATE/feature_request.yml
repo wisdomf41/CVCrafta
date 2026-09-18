@@ -1,0 +1,84 @@
+name: Feature Request
+description: Suggest an improvement or new capability for CVCrafta
+title: "[Feature]: "
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement to CVCrafta.
+
+        Please focus first on the problem or user need rather than only the implementation.
+
+  - type: checkboxes
+    id: existing-request
+    attributes:
+      label: Existing Request Check
+      options:
+        - label: I searched existing issues and did not find an equivalent request.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature Area
+      description: Which area does this request relate to?
+      options:
+        - Backend / API
+        - Frontend / React
+        - Authentication
+        - Resume Management
+        - Email
+        - Database
+        - Redis / Caching
+        - Docker
+        - Testing
+        - Documentation
+        - Observability
+        - CI/CD
+        - Azure / Cloud
+        - Infrastructure as Code
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Need
+      description: What problem would this feature solve?
+      placeholder: Describe the user or engineering problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Behavior
+      description: Describe how you would like CVCrafta to behave.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe any alternative approaches you considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add examples, screenshots, diagrams, or technical considerations if useful.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Contribution Check
+      options:
+        - label: I understand that large architectural changes should be discussed before implementation.
+          required: true
