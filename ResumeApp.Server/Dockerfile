@@ -8,7 +8,7 @@ EXPOSE 8080
 EXPOSE 8081
 
 # Updated: builds the React/Vite production files for the published application.
-FROM node:22-alpine AS client-build
+FROM node:26-alpine AS client-build
 WORKDIR /src/resumeapp.client
 
 COPY ["resumeapp.client/package.json", "resumeapp.client/package-lock.json", "./"]
