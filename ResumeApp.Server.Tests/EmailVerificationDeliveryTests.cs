@@ -226,12 +226,18 @@ public class EmailVerificationDeliveryTests
         var message = Assert.IsType<MimeMessage>(client.Message);
 
         Assert.Equal(
-            "Confirm your ResumeApp account",
+            "Confirm your CVCrafta account",
             message.Subject);
-        Assert.Contains("ResumeApp", message.TextBody);
+        Assert.Contains("CVCrafta", message.TextBody);
         Assert.Contains("expires in 2 hours", message.TextBody);
         Assert.Contains(
             "token=token-with%2Breserved%2Fvalue",
+            message.TextBody);
+        Assert.Contains(
+            "https://resume.example.test/confirm-email#",
+            message.TextBody);
+        Assert.DoesNotContain(
+            "/api/Auth/confirm-email",
             message.TextBody);
         Assert.Contains("Confirm email", message.HtmlBody);
         Assert.Contains("Do not share or forward it", message.HtmlBody);

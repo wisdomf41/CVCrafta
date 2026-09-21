@@ -138,7 +138,7 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo
 
     {
-        Title = "ResumeApp API",
+        Title = "CVCrafta API",
         Version = "v1"
     });
 

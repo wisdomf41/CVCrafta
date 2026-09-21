@@ -3,7 +3,6 @@ using ResumeApp.Server.Services.Interfaces;
 
 namespace ResumeApp.Server.Services.Implementations
 {
-    // Added to log local verification links without requiring an email provider.
     public class DevelopmentEmailVerificationSender : IEmailVerificationSender
     {
         private readonly IConfiguration _configuration;
@@ -27,8 +26,17 @@ namespace ResumeApp.Server.Services.Implementations
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_environment.IsDevelopment() &&
-                !_environment.IsEnvironment("Testing"))
+            // Updated: suppress confirmation links in Testing so CI logs never expose tokens.
+            if (_environment.IsEnvironment("Testing"))
+            {
+                _logger.LogInformation(
+                    "Email verification requested for {Email}; confirmation link suppressed in Testing.",
+                    user.Email);
+
+                return Task.CompletedTask;
+            }
+
+            if (!_environment.IsDevelopment())
             {
                 throw new InvalidOperationException(
                     "A production email-verification sender has not been configured.");
@@ -39,8 +47,8 @@ namespace ResumeApp.Server.Services.Implementations
                 .TrimEnd('/');
 
             var verificationLink =
-                $"{publicBaseUrl}/api/Auth/confirm-email" +
-                $"?userId={Uri.EscapeDataString(user.Id)}" +
+                $"{publicBaseUrl}/confirm-email" +
+                $"#userId={Uri.EscapeDataString(user.Id)}" +
                 $"&token={Uri.EscapeDataString(token)}";
 
             _logger.LogInformation(

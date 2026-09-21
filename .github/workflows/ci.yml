@@ -1,0 +1,72 @@
+# CVCrafta continuous integration workflow
+
+name: CVCrafta CI
+
+on:
+  push:
+    branches:
+      - main
+      - branding/cvcrafta
+
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend Build & Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore backend dependencies
+        run: dotnet restore ./ResumeApp.Server.Tests/ResumeApp.Server.Tests.csproj
+
+      - name: Build backend
+        run: dotnet build ./ResumeApp.Server.Tests/ResumeApp.Server.Tests.csproj --configuration Release --no-restore
+
+      - name: Run backend tests
+        run: dotnet test ./ResumeApp.Server.Tests/ResumeApp.Server.Tests.csproj --configuration Release --no-build --verbosity normal
+
+  frontend:
+    name: Frontend Build & Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./resumeapp.client
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: resumeapp.client/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run frontend linting
+        run: npm run lint
+
+      - name: Run frontend tests
+        run: npm run test:run
+
+      - name: Build frontend
+        run: npm run build

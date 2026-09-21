@@ -1,6 +1,6 @@
 # Email verification delivery
 
-ResumeApp selects its email-verification sender with
+CVCrafta selects its email-verification sender with
 `EmailDelivery:Provider`.
 
 - Use `Development` only in the ASP.NET Core `Development` or `Testing`
@@ -17,7 +17,7 @@ Docker Compose files, source control, command output, or screenshots.
 | Environment variable | User-secret key | Purpose |
 | --- | --- | --- |
 | `EmailDelivery__Provider` | `EmailDelivery:Provider` | Selects `Smtp` or `Development`. |
-| `App__PublicBaseUrl` | `App:PublicBaseUrl` | Absolute public HTTP/HTTPS base URL used in confirmation links. |
+| `App__PublicBaseUrl` | `App:PublicBaseUrl` | Absolute public frontend base URL used for `/confirm-email` links. |
 | `EmailDelivery__Smtp__Host` | `EmailDelivery:Smtp:Host` | SMTP server host. |
 | `EmailDelivery__Smtp__Port` | `EmailDelivery:Smtp:Port` | SMTP server port. |
 | `EmailDelivery__Smtp__Security` | `EmailDelivery:Smtp:Security` | MailKit security mode. |
@@ -31,6 +31,11 @@ provider's documented port and TLS requirements. The other MailKit modes
 (`Auto`, `None`, and `StartTlsWhenAvailable`) are rejected in Production
 because they do not guarantee encryption. Use `None` only in Development or
 Testing with an explicitly trusted local relay.
+
+Confirmation credentials are placed in the frontend link fragment so browsers
+do not send them in the initial HTTP request or referrer. React removes the
+fragment (and supports query-based older links) before sending the credentials
+to the API in a JSON request body.
 
 ## Safe local configuration
 
@@ -51,9 +56,10 @@ dotnet user-secrets set "EmailDelivery:Smtp:SenderName" "<sender-name>" --projec
 
 Restart the server after configuration changes. Register a disposable local
 test account, verify that the multipart message arrives, open the confirmation
-link, and confirm that login remains blocked before confirmation and succeeds
-afterward. Then use the resend action once and confirm that its response remains
-generic.
+link, and confirm that the browser removes its confirmation data before
+securely opening the dashboard. Confirm that reusing the same link shows safe
+failure guidance and does not issue another login token. Then use the resend
+action once and confirm that its response remains generic.
 
 Never use production recipients or credentials during local testing. Do not
 copy confirmation URLs or tokens into issue trackers, chat, screenshots, or

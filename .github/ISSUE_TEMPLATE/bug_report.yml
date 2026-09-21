@@ -1,0 +1,111 @@
+name: Bug Report
+description: Report a reproducible problem with CVCrafta
+title: "[Bug]: "
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve CVCrafta.
+
+        Do not use this form to report security vulnerabilities. Follow the instructions in SECURITY.md instead.
+
+  - type: checkboxes
+    id: existing-issue
+    attributes:
+      label: Existing Issue Check
+      description: Please check existing issues before submitting a new report.
+      options:
+        - label: I searched the existing issues and did not find a duplicate.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      description: Which part of CVCrafta is affected?
+      options:
+        - Backend / API
+        - Frontend / React
+        - Authentication
+        - Email Confirmation
+        - Resume Management
+        - Database / Entity Framework Core
+        - Redis / Caching
+        - Docker / Local Development
+        - Testing
+        - Documentation
+        - CI/CD
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior
+      description: Describe what currently happens.
+      placeholder: Explain the problem clearly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: Describe what you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Provide the smallest reliable set of steps that reproduces the problem.
+      placeholder: |
+        1. Start CVCrafta...
+        2. Navigate to...
+        3. Perform...
+        4. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Provide relevant development/runtime information.
+      placeholder: |
+        Operating system:
+        Browser:
+        .NET version:
+        Node.js version:
+        Docker version:
+        Development mode:
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Logs or Errors
+      description: Remove passwords, tokens, connection strings, email-confirmation tokens, and other sensitive values before sharing logs.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add screenshots or other useful information if applicable.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: security-check
+    attributes:
+      label: Sensitive Information Check
+      options:
+        - label: I have removed passwords, tokens, private credentials, personal information, and other secrets from this report.
+          required: true

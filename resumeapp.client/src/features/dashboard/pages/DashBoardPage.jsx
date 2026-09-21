@@ -6,7 +6,7 @@ function DashBoardPage() {
     const userName = localStorage.getItem("user_name");
     const userEmail = localStorage.getItem("user_email");
 
-    const displayName = userName || userEmail || "ResumeApp User";
+    const displayName = userName || userEmail || "CVCrafta User";
 
     const userInitial = displayName
         .trim()
@@ -218,7 +218,7 @@ function DashBoardPage() {
                             </h3>
 
                             <p className="mt-2 leading-7 text-slate-600">
-                                Return to the ResumeApp landing page and explore the public
+                                Return to the CVCrafta landing page and explore the public
                                 features and project information.
                             </p>
 

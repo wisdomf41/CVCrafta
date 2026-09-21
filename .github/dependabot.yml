@@ -1,0 +1,58 @@
+version: 2
+
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/ResumeApp.Server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Lagos"
+
+  - package-ecosystem: "nuget"
+    directory: "/ResumeApp.Server.Tests"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Lagos"
+
+  - package-ecosystem: "npm"
+    directory: "/resumeapp.client"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Lagos"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Lagos"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Lagos"
+
+  - package-ecosystem: "docker"
+    directory: "/ResumeApp.Server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Lagos"
+
+  - package-ecosystem: "docker-compose"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Lagos"

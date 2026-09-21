@@ -8,7 +8,7 @@ using System.Text.Encodings.Web;
 
 namespace ResumeApp.Server.Services.Implementations;
 
-// Sends multipart confirmation email without logging recipients, links, or credentials.
+// Sends multipart email linking to the frontend confirmation processor.
 public sealed class SmtpEmailVerificationSender :
     IEmailVerificationSender
 {
@@ -83,8 +83,8 @@ public sealed class SmtpEmailVerificationSender :
         var publicBaseUrl =
             _configuration["App:PublicBaseUrl"]!.TrimEnd('/');
 
-        return $"{publicBaseUrl}/api/Auth/confirm-email" +
-               $"?userId={Uri.EscapeDataString(userId)}" +
+        return $"{publicBaseUrl}/confirm-email" +
+               $"#userId={Uri.EscapeDataString(userId)}" +
                $"&token={Uri.EscapeDataString(token)}";
     }
 
@@ -103,13 +103,13 @@ public sealed class SmtpEmailVerificationSender :
             _options.SenderName,
             _options.SenderAddress));
         message.To.Add(new MailboxAddress(displayName, user.Email!));
-        message.Subject = "Confirm your ResumeApp account";
+        message.Subject = "Confirm your CVCrafta account";    // surface email branding changed from ResumeApp to CVCrafta.
 
         var body = new BodyBuilder
         {
             TextBody =
                 $"Hello {displayName},{Environment.NewLine}{Environment.NewLine}" +
-                "Welcome to ResumeApp. Confirm your account by opening this link:" +
+                "Welcome to CVCrafta. Confirm your account by opening this link:" +
                 $"{Environment.NewLine}{verificationLink}" +
                 $"{Environment.NewLine}{Environment.NewLine}" +
                 "This confirmation link expires in 2 hours. " +
@@ -119,7 +119,7 @@ public sealed class SmtpEmailVerificationSender :
                 "<!doctype html><html><body style=\"font-family:Arial,sans-serif;" +
                 "color:#0f172a;line-height:1.6\">" +
                 $"<p>Hello {encodedName},</p>" +
-                "<p>Welcome to <strong>ResumeApp</strong>. Confirm your account " +
+                "<p>Welcome to <strong>CVCrafta</strong>. Confirm your account " +
                 "to finish setting up your resume workspace.</p>" +
                 $"<p><a href=\"{encodedLink}\" style=\"display:inline-block;" +
                 "background:#2563eb;color:#ffffff;padding:12px 20px;" +

@@ -3,9 +3,15 @@ bin/
 obj/
 *.user
 *.suo
-# Local Docker secrets and FrontEnd Settings
+
+# Local environment secrets; keep only the safe contributor template tracked.
 .env
-.env.local
+.env.*
+!.env.example
+
+# Local secret-scan reports
+gitleaks-report.*
+
 # Visual Studio upgrade reports
 UpgradeLog*.htm
 

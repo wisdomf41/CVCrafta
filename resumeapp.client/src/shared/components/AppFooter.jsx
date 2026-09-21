@@ -11,12 +11,12 @@ function AppFooter() {
                     <div>
                         <Link to="/" className="inline-flex items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-lg font-extrabold text-white">
-                                R
+                                C
                             </div>
 
                             <div>
                                 <p className="text-xl font-extrabold text-white">
-                                    ResumeApp
+                                    CVCrafta
                                 </p>
 
                                 <p className="text-xs font-medium text-slate-400">
@@ -100,7 +100,7 @@ function AppFooter() {
 
                 <div className="mt-10 flex flex-col gap-3 border-t border-slate-800 pt-6 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
                     <p>
-                        © {currentYear} ResumeApp. All rights reserved.
+                        © {currentYear} CVCrafta. All rights reserved.
                     </p>
 
                     <p>
