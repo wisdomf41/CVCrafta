@@ -8,6 +8,7 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Africa/Lagos"
+    open-pull-requests-limit: 2
 
   - package-ecosystem: "nuget"
     directory: "/ResumeApp.Server.Tests"
@@ -16,6 +17,7 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Africa/Lagos"
+    open-pull-requests-limit: 2
 
   - package-ecosystem: "npm"
     directory: "/resumeapp.client"
@@ -24,6 +26,7 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Africa/Lagos"
+    open-pull-requests-limit: 2
 
   - package-ecosystem: "npm"
     directory: "/"
@@ -32,6 +35,7 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Africa/Lagos"
+    open-pull-requests-limit: 2
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -40,19 +44,17 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Africa/Lagos"
+    open-pull-requests-limit: 2
 
+  # Routine Docker upgrade PRs are paused for now.
   - package-ecosystem: "docker"
     directory: "/ResumeApp.Server"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Africa/Lagos"
+    open-pull-requests-limit: 0
 
   - package-ecosystem: "docker-compose"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "Africa/Lagos"
+    open-pull-requests-limit: 0
